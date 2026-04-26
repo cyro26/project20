@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>20chat</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Moderná, čistá typografia (ako používa MIB a BA) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- NAVIGÁCIA -->
+    <nav class="navbar">
+        <div class="logo">
+            <strong>20</strong>chat
+        </div>
+        <div class="user-controls" id="user-controls" style="display: none;">
+            <span id="current-username" class="username-display"></span>
+            <!-- TESTER POZNÁMKA: Všimni si jasné ID na tlačidle, aby sa na neho ľahko klikalo v Selenium/Cypresse -->
+            <button id="logout-btn" class="btn-outline">Odhlásiť</button>
+        </div>
+    </nav>
+
+    <!-- ZOBRAZOVANIE CHÝB (Pre UI testing) -->
+    <div id="error-toast" class="error-toast hidden"></div>
+
+    <main class="container">
+        <!-- SEKCIA: PRIHLÁSENIE A REGISTRÁCIA -->
+        <!-- TESTER POZNÁMKA: Máme tu dve sekcie (auth a chat), ktoré cez JavaScript skrývame/zobrazujeme -->
+        <section id="auth-section" class="auth-wrapper">
+            <div class="auth-box">
+                <h1>Vitajte.</h1>
+                <p class="subtitle">Prihláste sa pre pokračovanie.</p>
+                
+                <!-- Formulár pre Prihlásenie -->
+                <form id="login-form">
+                    <div class="input-group">
+                        <label for="login-username">Prihlasovacie meno</label>
+                        <input type="text" id="login-username" name="username" placeholder="napr. tester01">
+                    </div>
+                    <div class="input-group">
+                        <label for="login-password">Heslo</label>
+                        <input type="password" id="login-password" name="password">
+                    </div>
+                    <button type="submit" id="submit-login" class="btn-primary">Prihlásiť sa</button>
+                </form>
+
+                <div class="divider">alebo</div>
+
+                <!-- Formulár pre Registráciu -->
+                <form id="register-form">
+                    <div class="input-group">
+                        <label for="reg-username">Nové meno</label>
+                        <input type="text" id="reg-username" name="username">
+                    </div>
+                    <div class="input-group">
+                        <label for="reg-password">Nové heslo</label>
+                        <input type="password" id="reg-password" name="password">
+                    </div>
+                    <button type="submit" id="submit-register" class="btn-secondary">Vytvoriť účet</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- SEKCIA: CHAT (Predvolene skrytá cez CSS triedu 'hidden') -->
+        <section id="chat-section" class="chat-wrapper hidden">
+            <div class="chat-header">
+                <h2>Otvorená diskusia</h2>
+                <button id="refresh-chat-btn" class="btn-icon" title="Obnoviť správy">↻</button>
+            </div>
+            
+            <div id="chat-messages" class="messages-container">
+                <!-- Správy sa sem budú generovať cez JavaScript -->
+                <div class="message-placeholder">Zatiaľ tu nie sú žiadne správy. Začni diskusiu!</div>
+            </div>
+
+            <form id="chat-form" class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Napíšte správu..." autocomplete="off" required>
+                <button type="submit" id="send-msg-btn" class="btn-primary">Odoslať</button>
+            </form>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,319 @@
+/* ZÁKLADNÉ PREMENNÉ PRE DIZAJN (Minimalistický štýl) */
+:root {
+    --color-bg: #f9f9f9;
+    --color-surface: #ffffff;
+    --color-text: #1a1a1a;
+    --color-text-muted: #666666;
+    --color-border: #e0e0e0;
+    --color-primary: #000000;
+    --color-primary-hover: #333333;
+    --color-error: #d93025;
+    
+    --font-main: 'Inter', sans-serif;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+}
+
+/* RESET */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-main);
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* TYPOGRAFIA */
+h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    margin-bottom: var(--spacing-sm);
+}
+
+h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+.subtitle {
+    color: var(--color-text-muted);
+    margin-bottom: var(--spacing-xl);
+}
+
+/* NAVIGÁCIA */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md) var(--spacing-xl);
+    background-color: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.logo {
+    font-size: 1.25rem;
+    letter-spacing: -0.02em;
+}
+
+.username-display {
+    margin-right: var(--spacing-md);
+    font-weight: 600;
+}
+
+/* HLAVNÝ KONTAJNER */
+.container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: var(--spacing-xl);
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* CHYBOVÉ HLÁŠKY (Pre QA) */
+.error-toast {
+    position: fixed;
+    top: 80px;
+    right: var(--spacing-xl);
+    background-color: var(--color-error);
+    color: white;
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(217, 48, 37, 0.2);
+    transition: opacity 0.3s ease;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* FORMULÁRE A PRIHLÁSENIE */
+.auth-wrapper {
+    width: 100%;
+    max-width: 400px;
+}
+
+.auth-box {
+    background-color: var(--color-surface);
+    padding: var(--spacing-xl);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+}
+
+.input-group {
+    margin-bottom: var(--spacing-md);
+}
+
+label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.divider {
+    text-align: center;
+    margin: var(--spacing-xl) 0;
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    position: relative;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 1px;
+    background-color: var(--color-border);
+}
+
+.divider::before { left: 0; }
+.divider::after { right: 0; }
+
+/* TLAČIDLÁ */
+button {
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    border-radius: var(--radius-sm);
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--color-primary);
+    color: white;
+    font-size: 1rem;
+}
+
+.btn-primary:hover {
+    background-color: var(--color-primary-hover);
+}
+
+.btn-secondary {
+    width: 100%;
+    padding: 12px;
+    background-color: transparent;
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+    font-size: 1rem;
+}
+
+.btn-secondary:hover {
+    background-color: rgba(0,0,0,0.05);
+}
+
+.btn-outline {
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    font-size: 0.875rem;
+}
+
+.btn-outline:hover {
+    border-color: var(--color-primary);
+}
+
+.btn-icon {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--color-text-muted);
+}
+
+.btn-icon:hover {
+    color: var(--color-primary);
+}
+
+/* CHAT SEKCIA */
+.chat-wrapper {
+    width: 100%;
+    height: calc(100vh - 200px);
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+}
+
+.chat-header {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.messages-container {
+    flex: 1;
+    padding: var(--spacing-lg);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    background-color: #fafafa;
+}
+
+.message-placeholder {
+    text-align: center;
+    color: var(--color-text-muted);
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.msg {
+    max-width: 80%;
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    background-color: white;
+    border: 1px solid var(--color-border);
+    position: relative;
+    align-self: flex-start;
+}
+
+.msg.own {
+    align-self: flex-end;
+    background-color: #f0f0f0;
+    border-color: #e0e0e0;
+}
+
+.msg-author {
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    margin-bottom: 4px;
+}
+
+.msg.own .msg-author {
+    display: none; /* Nepotrebujeme vidieť vlastné meno na každej správe */
+}
+
+.msg-content {
+    word-break: break-word;
+}
+
+.msg-time {
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    text-align: right;
+    margin-top: 4px;
+}
+
+.chat-input-area {
+    display: flex;
+    padding: var(--spacing-md);
+    border-top: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+    gap: var(--spacing-sm);
+}
+
+.chat-input-area input {
+    flex: 1;
+    margin-bottom: 0; /* Override auth style */
+}
+
+.chat-input-area button {
+    width: auto;
+    padding: 0 var(--spacing-xl);
+}
