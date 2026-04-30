@@ -15,114 +15,80 @@ const db = new sqlite3.Database(dbPath, (err) => {
 });
 
 function initializeDatabase() {
+    // Použijeme serialize, aby sme zaručili, že príkazy idú presne po sebe
     db.serialize(() => {
-        // Zapnutie cudzích kľúčov
+        console.log('🛠️ Inicializujem databázovú schému...');
+        
         db.run('PRAGMA foreign_keys = ON');
 
-        // 1. TABUĽKA: USERS
-        db.run(`
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
-                email TEXT UNIQUE,
-                password_hash TEXT NOT NULL,
-                role TEXT DEFAULT 'user',
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
+        // 1. Tabuľky
+        db.run(`CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            email TEXT UNIQUE,
+            password_hash TEXT NOT NULL,
+            role TEXT DEFAULT 'user',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`);
 
-        // 2. TABUĽKA: ROOMS
-        db.run(`
-            CREATE TABLE IF NOT EXISTS rooms (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT UNIQUE NOT NULL,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
+        db.run(`CREATE TABLE IF NOT EXISTS rooms (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`);
 
-        // 3. TABUĽKA: MESSAGES
-        db.run(`
-            CREATE TABLE IF NOT EXISTS messages (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                room_id INTEGER DEFAULT 1,
-                content TEXT NOT NULL,
-                is_deleted INTEGER DEFAULT 0,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-                FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE
-            )
-        `);
+        db.run(`CREATE TABLE IF NOT EXISTS messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            room_id INTEGER DEFAULT 1,
+            content TEXT NOT NULL,
+            is_deleted INTEGER DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE
+        )`);
 
-        // 4. TABUĽKA: USER_ROOMS
-        db.run(`
-            CREATE TABLE IF NOT EXISTS user_rooms (
-                user_id INTEGER NOT NULL,
-                room_id INTEGER NOT NULL,
-                joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                PRIMARY KEY (user_id, room_id),
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-                FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE
-            )
-        `);
+        db.run(`CREATE TABLE IF NOT EXISTS message_reactions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            message_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL,
+            emoji TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (message_id) REFERENCES messages(id) ON DELETE CASCADE,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )`);
 
-        // 5. TABUĽKA: MESSAGE_REACTIONS
-        db.run(`
-            CREATE TABLE IF NOT EXISTS message_reactions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                message_id INTEGER NOT NULL,
-                user_id INTEGER NOT NULL,
-                emoji TEXT NOT NULL,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (message_id) REFERENCES messages(id) ON DELETE CASCADE,
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-            )
-        `);
-
-        console.log('✅ Databázová schéma je pripravená.');
+        console.log('✅ Databázová schéma je hotová.');
         
-        // Spustíme seeding
-        seedData();
-    });
-}
-
-function seedData() {
-    // Zmenil som podmienku: Ak je v databáze menej ako 5 používateľov, skúsime doplniť dáta.
-    // To pomôže, ak bol seeding predtým prerušený.
-    db.get("SELECT COUNT(*) as count FROM users", (err, row) => {
-        if (err) return console.error('Chyba pri kontrole dát:', err.message);
+        // 2. SEEDING (Nahrávanie dát)
+        // Použijeme INSERT OR IGNORE - ak dáta existujú, nič sa nestane. Ak nie, vložia sa.
+        console.log('🌱 Kontrolujem a nahrávam testovacie dáta...');
         
-        if (row.count < 5) {
-            console.log(`🌱 V databáze je len ${row.count} používateľov. Spúšťam seeding testovacích dát...`);
-            
-            const passHash = bcrypt.hashSync('heslo123', 10);
-            
-            db.serialize(() => {
-                // 1. Vložíme miestnosti (IGNORE zabezpečí, že ak už existujú, kód nespadne)
-                db.run("INSERT OR IGNORE INTO rooms (name) VALUES ('Všeobecné')");
-                db.run("INSERT OR IGNORE INTO rooms (name) VALUES ('Programovanie')");
-                db.run("INSERT OR IGNORE INTO rooms (name) VALUES ('Káva a relax')");
+        const passHash = bcrypt.hashSync('heslo123', 10);
 
-                // 2. Používatelia
-                const users = [
-                    ['admin_peto', 'peto@example.com', 'admin'],
-                    ['tester_janik', 'janik@test.sk', 'user'],
-                    ['zuzka_qa', 'zuzka@firma.cz', 'user'],
-                    ['fero_dev', 'fero@dev.com', 'user'],
-                    ['alena_senior', 'alena@pro.sk', 'admin'],
-                    ['robo_junior', 'robo@start.sk', 'user'],
-                    ['lucka_test', 'lucka@qa.com', 'user'],
-                    ['martin_sql', 'martin@db.com', 'user']
-                ];
+        // Miestnosti
+        db.run("INSERT OR IGNORE INTO rooms (id, name) VALUES (1, 'Všeobecné')");
+        db.run("INSERT OR IGNORE INTO rooms (id, name) VALUES (2, 'Programovanie')");
+        db.run("INSERT OR IGNORE INTO rooms (id, name) VALUES (3, 'Káva a relax')");
 
-                users.forEach(u => {
-                    db.run("INSERT OR IGNORE INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)", 
-                        [u[0], u[1], passHash, u[2]], (err) => {
-                            if (err) console.error(`Chyba pri nahrávaní užívateľa ${u[0]}:`, err.message);
-                        });
-                });
+        // Používatelia
+        const users = [
+            [1, 'admin_peto', 'peto@example.com', 'admin'],
+            [2, 'tester_janik', 'janik@test.sk', 'user'],
+            [3, 'zuzka_qa', 'zuzka@firma.cz', 'user'],
+            [4, 'fero_dev', 'fero@dev.com', 'user'],
+            [5, 'alena_senior', 'alena@pro.sk', 'admin'],
+            [6, 'robo_junior', 'robo@start.sk', 'user']
+        ];
 
-                // 3. Správy
+        users.forEach(u => {
+            db.run("INSERT OR IGNORE INTO users (id, username, email, password_hash, role) VALUES (?, ?, ?, ?, ?)", 
+                [u[0], u[1], u[2], passHash, u[3]]);
+        });
+
+        // Správy (len ak je tabuľka prázdna)
+        db.get("SELECT COUNT(*) as count FROM messages", (err, row) => {
+            if (row && row.count === 0) {
                 const messages = [
                     [1, 1, 'Ahojte, vitajte v QA Playgrounde!'],
                     [2, 1, 'Dnes sa ideme učiť SQL, teším sa.'],
@@ -131,42 +97,16 @@ function seedData() {
                     [4, 2, 'Kto tu rieši Node.js? Mám chybu v kóde.'],
                     [1, 2, 'Hoď to sem, pozrieme sa na to.'],
                     [5, 3, 'Dáte si niekto kávu?'],
-                    [7, 3, 'Ja si dám cappuccino, vďaka!'],
-                    [2, 1, 'Skúšam poslať ďalšiu správu na test.'],
-                    [4, 1, 'Nezabudnite na negatívne testovanie!'],
-                    [1, 1, 'Táto správa bude neskôr vymazaná (logicky).'],
-                    [6, 1, 'Práve som našiel bug!'],
-                    [7, 1, 'Kde presne?'],
-                    [5, 2, 'Máte už niekto hotové tie test-casy?'],
-                    [8, 1, 'Admin, môžeš pridať novú miestnosť pre Python?']
+                    [6, 1, 'Práve som našiel bug!']
                 ];
-
-                // Kontrola správ (ak nie sú žiadne, vložíme ich)
-                db.get("SELECT COUNT(*) as count FROM messages", (err, msgRow) => {
-                    if (msgRow.count < 10) {
-                        messages.forEach(m => {
-                            db.run("INSERT INTO messages (user_id, room_id, content) VALUES (?, ?, ?)", m, (err) => {
-                                if (err) console.error('Chyba pri nahrávaní správy:', err.message);
-                            });
-                        });
-                        // Označíme správu 11 ako vymazanú
-                        db.run("UPDATE messages SET is_deleted = 1 WHERE id = 11");
-                    }
+                messages.forEach(m => {
+                    db.run("INSERT INTO messages (user_id, room_id, content) VALUES (?, ?, ?)", m);
                 });
+                console.log('✅ Testovacie správy boli nahraté.');
+            }
+        });
 
-                // 4. Reakcie
-                db.get("SELECT COUNT(*) as count FROM message_reactions", (err, reactRow) => {
-                    if (reactRow.count === 0) {
-                        db.run("INSERT INTO message_reactions (message_id, user_id, emoji) VALUES (1, 2, '👍')");
-                        db.run("INSERT INTO message_reactions (message_id, user_id, emoji) VALUES (1, 3, '❤️')");
-                    }
-                });
-            });
-
-            console.log('✅ Seeding proces dobehol (skontroluj prípadné chyby vyššie).');
-        } else {
-            console.log('✅ Dáta v databáze už existujú, preskakujem seeding.');
-        }
+        console.log('🏁 Inicializácia kompletne dokončená.');
     });
 }
 
