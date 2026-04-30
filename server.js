@@ -38,7 +38,7 @@ function requireAuth(req, res, next) {
 
 // 1. REGISTRÁCIA
 app.post('/api/register', (req, res) => {
-    const { username, password } = req.body;
+    const { username, password, email } = req.body;
 
     // Kontrola vstupov (Dobrý cieľ pre negatívne testovanie v Postmane!)
     if (!username || !password) {
@@ -52,9 +52,9 @@ app.post('/api/register', (req, res) => {
     const hash = bcrypt.hashSync(password, 10);
 
     // Surový SQL príkaz na uloženie do databázy
-    const sql = `INSERT INTO users (username, password_hash) VALUES (?, ?)`;
+    const sql = `INSERT INTO users (username, password_hash, email) VALUES (?, ?, ?)`;
     
-    db.run(sql, [username.trim(), hash], function(err) {
+    db.run(sql, [username.trim(), hash, email ? email.trim() : null], function(err) {
         if (err) {
             // Ak uživateľ už existuje, SQLite vyhodí chybu "UNIQUE constraint failed"
             if (err.message.includes('UNIQUE')) {
@@ -117,6 +117,7 @@ app.get('/api/messages', requireAuth, (req, res) => {
         SELECT m.id, m.content, m.created_at, u.username
         FROM messages m
         JOIN users u ON m.user_id = u.id
+        WHERE m.is_deleted = 0
         ORDER BY m.created_at ASC
         LIMIT 100
     `;
